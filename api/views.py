@@ -18,6 +18,7 @@ import json
 
 from firebase_admin import messaging
 from .firebase_init import *
+from firebase_admin._messaging_utils import UnregisteredError, InvalidArgumentError
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -504,9 +505,28 @@ def send_validation_sms(phone_number: str, code: str):
 ################## FIREBASE CONFIG
 
 
-def send_notification(title, body, token):
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def test_notification(request):
+    title = request.data.get('title')
+    body = request.data.get('body')
+    token = request.data.get('token')
 
+    try:
+        send_notification(title, body, token)
+        return Response({"success": "Notification sent successfully."}, status=status.HTTP_200_OK)
+    except Exception as e :
+        return Response({'error' : e}, status=500)
+
+
+
+def send_notification(title, body, token):
     print(token)
+
+    # Skip empty or None tokens
+    if not token:
+        return
+
     message = messaging.Message(
         notification=messaging.Notification(
             title=title,
@@ -516,33 +536,56 @@ def send_notification(title, body, token):
     )
 
     try:
-        if token != '':
-            response = messaging.send(message)
-            print("✅ Notification envoyée avec ID:", response)
-    except Exception as e:
-        print("❌ Erreur lors de l'envoi de la notification :", e)
+        response = messaging.send(message)
+        print("✅ Notification envoyée avec ID:", response)
+
+    except UnregisteredError:
+        # Token no longer valid — skip silently
+        pass
+
+    except InvalidArgumentError:
+        # Token invalid/malformed — skip silently
+        pass
+
+    except Exception:
+        # Any other Firebase error — skip silently
+        pass
 
 
 
 def send_notifications_to_admins(title, body):
-    title = title
-    body = body
-
     admins = User.objects.filter(type__in=['admin', 'super_admin'])
 
-    if admins :
-        for admin in admins :
-            message = messaging.Message(
-                notification=messaging.Notification(
-                    title=title,
-                    body=body,
-                ),
-                token=admin.fcm_token,  
-            )
+    for admin in admins:
+        token = admin.fcm_token
 
-            if admin.fcm_token != '':
-                response = messaging.send(message)
-                print("Message envoyé avec ID:", response)
+        # Skip empty or None tokens
+        if not token:
+            continue  
+
+        message = messaging.Message(
+            notification=messaging.Notification(
+                title=title,
+                body=body,
+            ),
+            token=token,
+        )
+
+        try:
+            response = messaging.send(message)
+            print("Message envoyé avec ID:", response)
+
+        except UnregisteredError:
+            # Token no longer valid — skip silently
+            pass
+
+        except InvalidArgumentError:
+            # Token format invalid — skip silently
+            pass
+
+        except Exception:
+            # Any other Firebase error — skip silently
+            pass
 
 
 
