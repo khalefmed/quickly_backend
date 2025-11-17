@@ -18,7 +18,7 @@ import json
 
 from firebase_admin import messaging
 from .firebase_init import *
-from firebase_admin._messaging_utils import UnregisteredError, InvalidArgumentError
+from firebase_admin._messaging_utils import UnregisteredError
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -543,10 +543,6 @@ def send_notification(title, body, token):
         # Token no longer valid — skip silently
         pass
 
-    except InvalidArgumentError:
-        # Token invalid/malformed — skip silently
-        pass
-
     except Exception:
         # Any other Firebase error — skip silently
         pass
@@ -577,10 +573,6 @@ def send_notifications_to_admins(title, body):
 
         except UnregisteredError:
             # Token no longer valid — skip silently
-            pass
-
-        except InvalidArgumentError:
-            # Token format invalid — skip silently
             pass
 
         except Exception:
