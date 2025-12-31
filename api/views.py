@@ -8,7 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken,  TokenError
 from django.contrib.auth import authenticate
-from .models import User, Category, Commande, ItemCommande
+from .models import User, Vendor, Commande, ItemCommande
 from .serializers import *
 from django.shortcuts import get_object_or_404
 from rest_framework.permissions import AllowAny
@@ -26,9 +26,9 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
 
 
-class CategoryViewSet(viewsets.ModelViewSet):
-    queryset = Category.objects.all()
-    serializer_class = CategorySerializer
+class VendorViewSet(viewsets.ModelViewSet):
+    queryset = Vendor.objects.all()
+    serializer_class = VendorSerializer
 
 
 class CommandeViewSet(viewsets.ModelViewSet):
@@ -70,7 +70,7 @@ class LoginView(TokenObtainPairView):
 
                 data = {
                     'access': str(refresh.access_token),
-                    'refresh': str(refresh),  # ✅ Add this line
+                    'refresh': str(refresh), 
                     'user': user_data,
                 }
 
@@ -81,12 +81,29 @@ class LoginView(TokenObtainPairView):
         return Response({'detail': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
 
-# --- Category details by type ---
-class GuewdaCategoryView(APIView):
+# --- Vendor details by type ---
+class GuewdaVendorView(APIView):
     permission_classes = [AllowAny]
     def get(self, request):
-        categories = Category.objects.filter(type='guewda').order_by('order')
-        serializer = CategorySerializer(categories, many=True)
+        categories = Vendor.objects.filter(type='guewda').order_by('order')
+        serializer = VendorSerializer(categories, many=True)
+        data = serializer.data
+
+        if request.user.is_authenticated:
+            if getattr(request.user, 'type', None) == 'traitor':
+                for item in data:
+                    item['price1'] = round(item['price1'] * 0.95, 2)
+                    item['price2'] = round(item['price2'] * 0.95, 2)
+                    item['price3'] = round(item['price3'] * 0.95, 2)
+        return Response(data)
+    
+
+class RestaurantVendorView(APIView):
+    permission_classes = [AllowAny]
+    def get(self, request):
+        print('Here')
+        categories = Vendor.objects.filter(type='restaurant').order_by('order')
+        serializer = VendorSerializer(categories, many=True)
         data = serializer.data
 
         if request.user.is_authenticated:
@@ -98,11 +115,11 @@ class GuewdaCategoryView(APIView):
         return Response(data)
 
 
-class SayraCategoryView(APIView):
+class SayraVendorView(APIView):
     permission_classes = [AllowAny]
     def get(self, request):
-        categories = Category.objects.filter(type='sayra').order_by('order')
-        serializer = CategorySerializer(categories, many=True)
+        categories = Vendor.objects.filter(type='sayra').order_by('order')
+        serializer = VendorSerializer(categories, many=True)
         data = serializer.data
 
         if request.user.is_authenticated:
@@ -115,11 +132,11 @@ class SayraCategoryView(APIView):
         return Response(data)
 
 
-class MechwiCategoryView(APIView):
+class MechwiVendorView(APIView):
     permission_classes = [AllowAny]
     def get(self, request):
-        categories = Category.objects.filter(type='mechwi').order_by('order')
-        serializer = CategorySerializer(categories, many=True)
+        categories = Vendor.objects.filter(type='mechwi').order_by('order')
+        serializer = VendorSerializer(categories, many=True)
         data = serializer.data
 
         if request.user.is_authenticated:
@@ -259,15 +276,30 @@ class PendingCommandesView(APIView):
         })
     
 
+
+class PendingCommandesLivreurView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        user = request.user
+        paid = Commande.objects.filter(status='paid', livreur__isnull=True)
+        loading = Commande.objects.filter(status='loading', livreur=user)
+        return Response({
+            "paid": CommandeSerializer(paid, many=True).data,
+            "loading": CommandeSerializer(loading, many=True).data
+        })
+    
+
 class PendingCommandesView2(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         waiting = Commande.objects.filter(status='waiting')
-        rejected = Commande.objects.filter(status='rejected')
+        delivered = Commande.objects.filter(status='delivered')
         return Response({
             "waiting": CommandeSerializer(waiting, many=True).data,
-            "rejected": CommandeSerializer(rejected, many=True).data
+            "delivered": CommandeSerializer(delivered, many=True).data
         })
     
 
@@ -301,6 +333,21 @@ class StatisticsView(APIView):
             "commandes_delivered": Commande.objects.filter(status='delivered').count(),
             "commandes_waiting": Commande.objects.filter(status='waiting').count(),
             "commandes_loading": Commande.objects.filter(status='loading').count(),
+        }
+        return Response(data)
+    
+
+
+class LivreurStatisticsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        user = request.user
+
+        data = {
+            "commandes_delivered": Commande.objects.filter(status='delivered', livreur=user).count(),
+            "commandes_loading": Commande.objects.filter(status='loading', livreur=user).count(),
         }
         return Response(data)
     
@@ -341,6 +388,59 @@ class ChangeCommandeStatusView(APIView):
                 'rejected' : 'rejecte',
             }
         }
+
+
+                
+        if user.default_lang == 'ar' :
+            send_notification(
+                statuses['ar'][commande.status], 
+                f'تم تغيير حالة طلبك {commande.code}',
+                commande.user.fcm_token
+            )
+        else :
+            send_notification(
+                statuses['fr'][commande.status], 
+                f'Votre commande {commande.code} a change de status ',
+                commande.user.fcm_token
+            )
+        return Response({'detail': 'Status updated successfully', 'commande': CommandeSerializer(commande).data})
+    
+
+
+class LivreurChangeCommandeStatusView(APIView):
+    permission_classes = [IsAuthenticated]
+
+
+    def post(self, request, pk):
+        user = request.user
+        new_status = request.data.get('status')
+        if new_status not in ['loading', 'delivered']:
+            return Response({'detail': 'Invalid status'}, status=status.HTTP_400_BAD_REQUEST)
+
+        commande = get_object_or_404(Commande, pk=pk)
+        commande.status = new_status
+        if new_status == 'loading' :
+            commande.livreur = user
+        commande.save()
+
+        print(request.user.fcm_token)
+        
+
+
+
+        statuses = {
+            'ar': {
+                'loading': 'قيد المعالجة',
+                'delivered': 'تم التوصيل',
+            },
+            'fr' : {
+                'loading' : 'en cours',
+                'delivered' : 'livre',
+            }
+        }
+
+
+        
 
 
                 

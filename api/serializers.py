@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, Category, Commande, ItemCommande
+from .models import *
 
 class LoginSerializer(serializers.Serializer):
     phone = serializers.CharField(max_length=20)
@@ -27,16 +27,35 @@ class UpdateUserNameSerializer(serializers.ModelSerializer):
         fields = ['first_name', 'last_name']
 
 
-class CategorySerializer(serializers.ModelSerializer):
+class ItemVendorSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Category
+        model = ItemVendor
         fields = '__all__'
 
 
-class CategoryDetailSerializer(serializers.ModelSerializer):
+class VendorSerializer(serializers.ModelSerializer):
+    vendor_items = ItemVendorSerializer(many=True, read_only=True)
     class Meta:
-        model = Category
+        model = Vendor
+        fields = '__all__'
+
+
+class VendorDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Vendor
         fields = ['id', 'name_fr', 'image', 'name_ar', 'price1', 'price2', 'price3', 'livraison', 'is_big_steak', 'type', 'type_class']
+
+
+class ItemVendorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ItemVendor
+        fields = '__all__'
+
+
+class ItemVendorDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ItemVendor
+        fields = ['id', 'image', 'nom', 'prix' ]
 
 
 class UserDetailSerializer(serializers.ModelSerializer):
@@ -46,16 +65,20 @@ class UserDetailSerializer(serializers.ModelSerializer):
 
 
 class ItemCommandeSerializer(serializers.ModelSerializer):
-    category = CategoryDetailSerializer(read_only=True)
-    category_id = serializers.PrimaryKeyRelatedField(
-        queryset=Category.objects.all(), source='category', write_only=True
+    vendor = VendorDetailSerializer(read_only=True)
+    vendor_id = serializers.PrimaryKeyRelatedField(
+        queryset=Vendor.objects.all(), source='vendor', write_only=True
+    )
+    item = ItemVendorDetailSerializer(read_only=True)
+    item_id = serializers.PrimaryKeyRelatedField(
+        queryset=ItemVendor.objects.all(), source='item', write_only=True
     )
 
     class Meta:
         model = ItemCommande
         fields = [
-            'id', 'commande', 'category', 'category_id', 'selected_price',
-            'number', 'with_chicken', 'chicken_number', 'remplissage'
+            'id', 'commande', 'vendor', 'vendor_id',
+            'number', 'item', 'item_id'
         ]
 
 class CommandeSerializer(serializers.ModelSerializer):
@@ -65,7 +88,7 @@ class CommandeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Commande
         fields = [
-            'id', 'title', 'code', 'prix', 'date', 'status', 'location', 'livraison', 'capture', 'avec_6begat',
+            'id', 'title', 'code', 'prix', 'date', 'status', 'location', 'livraison', 'capture',
             'phone', 'user', 'items'
         ]
 

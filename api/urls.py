@@ -4,7 +4,7 @@ from .views import *
 
 router = DefaultRouter()
 router.register('users', UserViewSet)
-router.register('categories', CategoryViewSet)
+router.register('categories', VendorViewSet)
 router.register('commandes', CommandeViewSet)
 router.register('items', ItemCommandeViewSet)
 
@@ -20,9 +20,10 @@ urlpatterns = [
 
 
     # Custom category views
-    path('category/guewda/', GuewdaCategoryView.as_view(), name='category-guewda'),
-    path('category/sayra/', SayraCategoryView.as_view(), name='category-sayra'),
-    path('category/mechwi/', MechwiCategoryView.as_view(), name='category-mechwi'),
+    path('category/restaurant/', RestaurantVendorView.as_view(), name='category-guewda'),
+    path('category/guewda/', GuewdaVendorView.as_view(), name='category-guewda'),
+    path('category/sayra/', SayraVendorView.as_view(), name='category-sayra'),
+    path('category/mechwi/', MechwiVendorView.as_view(), name='category-mechwi'),
 
     # Commande-related views
     path('mes_commandes/', MesCommandesView.as_view(), name='mes-commandes'),
@@ -30,6 +31,8 @@ urlpatterns = [
     path('commandes/pending/', PendingCommandesView.as_view(), name='pending-commandes'),  #done
     path('commandes/pending2/', PendingCommandesView2.as_view(), name='pending2-commandes'),  #done
     path('commandes/<int:pk>/change_status/', ChangeCommandeStatusView.as_view(), name='change-commande-status'),
+    path('commandes/<int:pk>/change_status/livreur/', LivreurChangeCommandeStatusView.as_view(), name='livreur-change-commande-status'),
+    path('commandes/pending/livreur/', PendingCommandesView.as_view(), name='pending-commandes'),  #done
 
     # User-related views
     path('update_password/', UpdatePasswordView.as_view(), name='update-password'),
@@ -40,6 +43,7 @@ urlpatterns = [
 
     # Statistics
     path('stats/', StatisticsView.as_view(), name='stats'), #done
+    path('stats/livreur/', LivreurStatisticsView.as_view(), name='stats-livreur'), #done
 
     # ViewSets
     path('', include(router.urls)),

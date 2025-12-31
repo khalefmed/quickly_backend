@@ -13,7 +13,7 @@ class CustomUserManager(BaseUserManager):
     def create_superuser(self, phone, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
-        extra_fields.setdefault('username', phone)  # Ajout de username par défaut
+        extra_fields.setdefault('username', phone)  
         
         if extra_fields.get('is_staff') is not True:
             raise ValueError('Superuser must have is_staff=True.')
@@ -23,7 +23,7 @@ class CustomUserManager(BaseUserManager):
         return self.create_user(phone, password, **extra_fields)
 
     def create_user(self, phone, password=None, **extra_fields):
-        extra_fields.setdefault('username', phone)  # Ajout de username par défaut
+        extra_fields.setdefault('username', phone)  
         
         if not phone:
             raise ValueError('The mobile field must be set')
@@ -69,7 +69,7 @@ class User(AbstractUser):
 
 
 
-class Category(models.Model):
+class Vendor(models.Model):
     image = CloudinaryField('image')
     name_fr = models.CharField(max_length=100)
     name_ar = models.CharField(max_length=100, default='')
@@ -85,6 +85,18 @@ class Category(models.Model):
 
     def __str__(self):
         return f'{self.name_fr} - {self.type}'
+    
+
+
+class ItemVendor(models.Model):
+    image = CloudinaryField('image')
+    nom = models.CharField(max_length=100, null=True)
+    prix = models.FloatField()
+    vendor = models.ForeignKey(Vendor, related_name='vendor_items', on_delete=models.CASCADE, null=True)
+
+
+    def __str__(self):
+        return f'{self.nom} - {self.prix}'
 
 
 
@@ -107,13 +119,12 @@ class Commande(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='waiting')
     location = models.TextField()
     phone = models.CharField(max_length=100, default='') 
-    avec_6begat = models.BooleanField(default=False) 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     capture = CloudinaryField('image', blank=True, null=True)
+    livreur = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True, related_name='livreur')
 
     def save(self, *args, **kwargs):
         if not self.code:
-            # Generate a short unique identifier (8 characters from UUID)
             unique_code = uuid.uuid4().hex[:8].upper()
             self.code = f"CM{unique_code}"
         super().save(*args, **kwargs)
@@ -125,13 +136,10 @@ class Commande(models.Model):
 
 
 class ItemCommande(models.Model):
-    category = models.ForeignKey(Category, on_delete=models.CASCADE)
+    vendor = models.ForeignKey(Vendor, on_delete=models.CASCADE)
     commande = models.ForeignKey(Commande, on_delete=models.CASCADE, related_name='items')
     number = models.PositiveIntegerField()
-    selected_price = models.FloatField(default=0)
-    with_chicken = models.BooleanField(default=False, null=True, blank=True)
-    chicken_number = models.PositiveIntegerField(default=0, null=True, blank=True)
-    remplissage = models.CharField(max_length=100, default="", null=True, blank=True)
+    item = models.ForeignKey(ItemVendor, on_delete=models.CASCADE, null=True)
 
     def __str__(self):
         return f"ItemCommande {self.id} - x{self.number}"
