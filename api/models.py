@@ -80,7 +80,7 @@ class Vendor(models.Model):
     type = models.CharField(max_length=50, choices=TYPE_CHOICES)
 
     def __str__(self):
-        return f'{self.name_fr} - {self.type}'
+        return f'{self.name} - {self.type}'
     
 
 
