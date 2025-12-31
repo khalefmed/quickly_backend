@@ -64,10 +64,10 @@ INSTALLED_APPS += [
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 
-cloudinary.config(
-    cloud_name='dreaeboba',
-    api_key='883739593355739',
-    api_secret='Vt35w8uTjsPCt_hRRQSHAjNHdAk',
+cloudinary.config( 
+    cloud_name = "dry5u3zf0", 
+    api_key = "376395597783122", 
+    api_secret = "eUxfa1y4r2oeJOBK72kV2D8jdfY", # Click 'View API Keys' above to copy your API secret
     secure=True
 )
 
