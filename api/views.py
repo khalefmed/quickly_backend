@@ -82,71 +82,44 @@ class LoginView(TokenObtainPairView):
 
 
 # --- Vendor details by type ---
-class GuewdaVendorView(APIView):
-    permission_classes = [AllowAny]
-    def get(self, request):
-        categories = Vendor.objects.filter(type='guewda').order_by('order')
-        serializer = VendorSerializer(categories, many=True)
-        data = serializer.data
 
-        if request.user.is_authenticated:
-            if getattr(request.user, 'type', None) == 'traitor':
-                for item in data:
-                    item['price1'] = round(item['price1'] * 0.95, 2)
-                    item['price2'] = round(item['price2'] * 0.95, 2)
-                    item['price3'] = round(item['price3'] * 0.95, 2)
-        return Response(data)
     
 
 class RestaurantVendorView(APIView):
     permission_classes = [AllowAny]
     def get(self, request):
         print('Here')
-        categories = Vendor.objects.filter(type='restaurant').order_by('order')
+        categories = Vendor.objects.filter(type='restaurant')
         serializer = VendorSerializer(categories, many=True)
         data = serializer.data
 
-        if request.user.is_authenticated:
-            if getattr(request.user, 'type', None) == 'traitor':
-                for item in data:
-                    item['price1'] = round(item['price1'] * 0.95, 2)
-                    item['price2'] = round(item['price2'] * 0.95, 2)
-                    item['price3'] = round(item['price3'] * 0.95, 2)
         return Response(data)
+    
 
 
-class SayraVendorView(APIView):
+class PharmacieVendorView(APIView):
     permission_classes = [AllowAny]
     def get(self, request):
-        categories = Vendor.objects.filter(type='sayra').order_by('order')
+        print('Here')
+        categories = Vendor.objects.filter(type='pharmacie')
         serializer = VendorSerializer(categories, many=True)
         data = serializer.data
 
-        if request.user.is_authenticated:
-            if getattr(request.user, 'type', None) == 'traitor':
-                for item in data:
-                    item['price1'] = round(item['price1'] * 0.95, 2)
-                    item['price2'] = round(item['price2'] * 0.95, 2)
-                    item['price3'] = round(item['price3'] * 0.95, 2)
-
         return Response(data)
+    
 
 
-class MechwiVendorView(APIView):
+class EpicerieVendorView(APIView):
     permission_classes = [AllowAny]
     def get(self, request):
-        categories = Vendor.objects.filter(type='mechwi').order_by('order')
+        print('Here')
+        categories = Vendor.objects.filter(type='epicerie')
         serializer = VendorSerializer(categories, many=True)
         data = serializer.data
 
-        if request.user.is_authenticated:
-            if getattr(request.user, 'type', None) == 'traitor':
-                for item in data:
-                    item['price1'] = round(item['price1'] * 0.95, 2)
-                    item['price2'] = round(item['price2'] * 0.95, 2)
-                    item['price3'] = round(item['price3'] * 0.95, 2)
-
         return Response(data)
+
+
 
 
 # --- Mes Commandes ---
@@ -570,9 +543,10 @@ class DeleteAccountView(APIView):
 
 
 def send_validation_sms(phone_number: str, code: str):
-    url = 'https://chinguisoft.com/api/sms/validation/wQepFqCYVt3y40Ff'
+    url = 'https://chinguisoft.com/api/sms/validation/o5MSMshKgDe6hZJ5'
     headers = {
-        'Validation-token': 'MnQK3bW88JD5KPPUzeB5DDxuU4RwXT71',
+        # 'Validation-token': 'MnQK3bW88JD5KPPUzeB5DDxuU4RwXT71',
+        'Validation-token': 'pPjqb4VQbMi1wkmJRc4B7eZKqh3jlGme',
         'Content-Type': 'application/json'
     }
     payload = {

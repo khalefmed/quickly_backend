@@ -20,10 +20,9 @@ urlpatterns = [
 
 
     # Custom category views
-    path('category/restaurant/', RestaurantVendorView.as_view(), name='category-guewda'),
-    path('category/guewda/', GuewdaVendorView.as_view(), name='category-guewda'),
-    path('category/sayra/', SayraVendorView.as_view(), name='category-sayra'),
-    path('category/mechwi/', MechwiVendorView.as_view(), name='category-mechwi'),
+    path('category/restaurant/', RestaurantVendorView.as_view(), name='category-restaurant'),
+    path('category/pharmacie/', PharmacieVendorView.as_view(), name='category-pharmacie'),
+    path('category/epicerie/', EpicerieVendorView.as_view(), name='category-epicerie'),
 
     # Commande-related views
     path('mes_commandes/', MesCommandesView.as_view(), name='mes-commandes'),
