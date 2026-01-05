@@ -13,8 +13,8 @@ class CustomUserManager(BaseUserManager):
     def create_superuser(self, phone, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
-        extra_fields.setdefault('username', phone)  
-        
+        extra_fields.setdefault('username', phone)
+
         if extra_fields.get('is_staff') is not True:
             raise ValueError('Superuser must have is_staff=True.')
         if extra_fields.get('is_superuser') is not True:
@@ -23,8 +23,8 @@ class CustomUserManager(BaseUserManager):
         return self.create_user(phone, password, **extra_fields)
 
     def create_user(self, phone, password=None, **extra_fields):
-        extra_fields.setdefault('username', phone)  
-        
+        extra_fields.setdefault('username', phone)
+
         if not phone:
             raise ValueError('The mobile field must be set')
 
@@ -81,7 +81,7 @@ class Vendor(models.Model):
 
     def __str__(self):
         return f'{self.name} - {self.type}'
-    
+
 
 
 class ItemVendor(models.Model):
@@ -108,12 +108,12 @@ class Commande(models.Model):
     ]
 
     prix = models.FloatField()
-    livraison = models.FloatField(default=0) 
+    livraison = models.FloatField(default=0)
     code = models.CharField(max_length=100, default='', unique=True, editable=False)
     date = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='waiting')
     location = models.TextField()
-    phone = models.CharField(max_length=100, default='') 
+    phone = models.CharField(max_length=100, default='')
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     capture = CloudinaryField('image', blank=True, null=True)
     livreur = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True, related_name='livreur')
@@ -125,7 +125,7 @@ class Commande(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"Commande {self.id} - {self.status} - {self.title}"
+        return f"Commande {self.id} - {self.status} - {self.code}"
 
 
 
