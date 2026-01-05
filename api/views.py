@@ -172,11 +172,16 @@ class AddCommandeView(APIView):
 
         commande = commande_serializer.save()
 
+
+        print('Created commande:', commande)
+
         for item in items_data:
             item['commande'] = commande.id
             item_serializer = ItemCommandeSerializer(data=item)
+            print('Item data:', items_data)
             if not item_serializer.is_valid():
                 commande.delete()
+                print('Item errors:', item_serializer.errors)
                 return Response({
                     'detail': 'Invalid item data.',
                     'errors': item_serializer.errors

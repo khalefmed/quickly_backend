@@ -43,7 +43,7 @@ class VendorSerializer(serializers.ModelSerializer):
 class VendorDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Vendor
-        fields = ['id', 'name_fr', 'image', 'name_ar', 'price1', 'price2', 'price3', 'livraison', 'is_big_steak', 'type', 'type_class']
+        fields = ['id', 'name', 'image', 'type']
 
 
 class ItemVendorSerializer(serializers.ModelSerializer):
@@ -88,7 +88,7 @@ class CommandeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Commande
         fields = [
-            'id', 'title', 'code', 'prix', 'date', 'status', 'location', 'livraison', 'capture',
+            'id', 'code', 'prix', 'date', 'status', 'location', 'livraison', 'capture',
             'phone', 'user', 'items'
         ]
 
