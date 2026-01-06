@@ -89,7 +89,7 @@ class CommandeSerializer(serializers.ModelSerializer):
         model = Commande
         fields = [
             'id', 'code', 'prix', 'date', 'status', 'location', 'livraison', 'capture',
-            'phone', 'user', 'items'
+            'phone', 'user', 'items', 'livreur'
         ]
 
     def create(self, validated_data):
