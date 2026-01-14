@@ -84,6 +84,7 @@ class ItemCommandeSerializer(serializers.ModelSerializer):
 class CommandeSerializer(serializers.ModelSerializer):
     user = UserDetailSerializer(read_only=True)
     items = ItemCommandeSerializer(many=True, read_only=True)
+    livreur = UserDetailSerializer(read_only=True)
 
     class Meta:
         model = Commande
